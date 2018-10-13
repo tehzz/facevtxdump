@@ -36,7 +36,8 @@ impl FaceInfo {
     }
 }
 
-pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32) -> Result<(), FaceDumpErr> 
+pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32, width: usize) 
+-> Result<(), FaceDumpErr> 
     where R: Read + Seek, W: Write
 {
     let mut info_buf = [0u8; 12];
@@ -60,8 +61,9 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32) -> Result<(), 
         let lnpos = i % LN_SIZE;
         let indent = if lnpos == 0 {INDENT} else {""};
         let ending = if lnpos == END_LN || i == info.count as usize - 1 {"\n"} else {" "};
-        write!(wtr, "{}{{ {:1}, {:3}, {:3}, {:3} }},{}", 
-            indent, arr[0], arr[1], arr[2], arr[3], ending
+        write!(wtr, "{}{{ {:1}, {:w$}, {:w$}, {:w$} }},{}", 
+            indent, arr[0], arr[1], arr[2], arr[3], ending,
+            w = width
         )?;
     }
     writeln!(wtr, "}};\n")?;

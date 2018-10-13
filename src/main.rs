@@ -33,6 +33,9 @@ struct Opts {
     /// Look for face data (linked in PlaneGroup)
     #[structopt(short = "f", long = "face", conflicts_with = "vertex")]
     face: bool,
+    /// Min padding between values in output array 
+    #[structopt(short = "w")]
+    width: Option<usize>,
 }
 
 fn main() {
@@ -52,10 +55,11 @@ fn run(opts: Opts) -> Result<(), Error> {
     let rdr = BufReader::new(f);
     let wtr = get_file_or_stdout(opts.output).context("opening output for writing")?;
     let vram = opts.ram.unwrap_or(0);
+    let width = opts.width.unwrap_or(0);
 
     match (opts.vtx, opts.face) {
-        (true, false) => vtx::dump(rdr, wtr, opts.addr, vram as u32)?,
-        (false, true) => faces::dump(rdr, wtr, opts.addr, vram as u32)?,
+        (true, false) => vtx::dump(rdr, wtr, opts.addr, vram as u32, width)?,
+        (false, true) => faces::dump(rdr, wtr, opts.addr, vram as u32, width)?,
         _ => bail!("Illegal combination of mode options"),
     };
 

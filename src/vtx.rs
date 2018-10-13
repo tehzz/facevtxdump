@@ -35,7 +35,8 @@ impl VtxInfo {
     }
 }
 
-pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32) -> Result<(), VtxDumpErr> 
+pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32, width: usize) 
+-> Result<(), VtxDumpErr> 
     where R: Read + Seek, W: Write
 {
     let mut info_buf = [0u8; 12];
@@ -59,8 +60,9 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32) -> Result<(), 
         let lnpos = i % LN_SIZE;
         let indent = if lnpos == 0 {INDENT} else {""};
         let ending = if lnpos == END_LN || i == info.count as usize - 1 {"\n"} else {" "};
-        write!(wtr, "{}{{ {:4}, {:4}, {:4} }},{}", 
-            indent, arr[0], arr[1], arr[2], ending
+        write!(wtr, "{}{{ {:w$}, {:w$}, {:w$} }},{}", 
+            indent, arr[0], arr[1], arr[2], ending,
+            w = width
         )?;
     }
     writeln!(wtr,"}};\n")?;
