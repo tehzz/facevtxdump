@@ -3,8 +3,12 @@ use byteorder::{BE, ByteOrder, ReadBytesExt};
 
 const DATA_ARR: &'static str = "faceData";
 const INFO_VAR: &'static str = "faceInfo";
-const INDENT: &'static str = "    ";
+const SZ_DEFINE: &'static str = "FACE_NUM";
 const DATA_SIZE: usize = 4; // short arr[4]
+const INDENT: &'static str = "    ";
+const LN_SIZE: usize = 4;    // how many data array initializations per line
+const END_LN: usize = LN_SIZE - 1;
+
 
 #[derive(Debug, Fail)]
 pub enum FaceDumpErr {
@@ -44,23 +48,27 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32) -> Result<(), 
         Some(o) => o as u64,
         None => return Err(FaceDumpErr::Tlb(info.data_ptr, vram)),
     };
-    // abstract into function?
-    let mut data = vec![0i16; info.count as usize * DATA_SIZE];   // count of short[4] 
+    let mut data = vec![0u16; info.count as usize * DATA_SIZE];   // count of short[4] 
     rdr.seek(SeekFrom::Start(data_offset))?;
-    rdr.read_i16_into::<BE>(&mut data)?;
+    rdr.read_u16_into::<BE>(&mut data)?;
 
-    // Write out the three 16bit arrays in sets of two chunks
+    // Write out the array of four unsigned 16bit values per face     
+    writeln!(wtr, "#define {} {}", SZ_DEFINE, info.count);
     writeln!(wtr, "/* @ {:08X} ({:x}) */", data_offset + vram as u64, data_offset)?;
-    writeln!(wtr, "{}[{}] = {{", DATA_ARR, info.count)?;
-    for arr in data.chunks(4) {
-        writeln!(wtr, "{}{{ {}, {}, {}, {} }},", INDENT, arr[0], arr[1], arr[2], arr[3])?;
+    writeln!(wtr, "{}[{}] = {{", DATA_ARR, SZ_DEFINE)?;
+    for (i, arr) in data.chunks(4).enumerate() {
+        let lnpos = i % LN_SIZE;
+        let indent = if lnpos == 0 {INDENT} else {""};
+        let ending = if lnpos == END_LN || i == info.count as usize - 1 {"\n"} else {" "};
+        write!(wtr, "{}{{ {:1}, {:3}, {:3}, {:3} }},{}", 
+            indent, arr[0], arr[1], arr[2], arr[3], ending
+        )?;
     }
-    writeln!(wtr, "}};")?;
-    write!(wtr,"\n")?;
+    writeln!(wtr, "}};\n")?;
 
     // Write the info struct
     writeln!(wtr, "/* @ {:08X} ({:x}) */", offset + vram as u64, offset)?;
-    writeln!(wtr, "{} = {{ {}, {:#x}, {} }}", INFO_VAR, info.count, info.kind, DATA_ARR)?;
+    writeln!(wtr, "{} = {{ {}, {:#x}, {} }};", INFO_VAR, SZ_DEFINE, info.kind, DATA_ARR)?;
 
     Ok(())
 }
