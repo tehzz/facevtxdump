@@ -56,7 +56,7 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32, width: usize)
     // Write out the array of four unsigned 16bit values per face     
     writeln!(wtr, "#define {} {}", SZ_DEFINE, info.count);
     writeln!(wtr, "/* @ {:08X} ({:x}) */", data_offset + vram as u64, data_offset)?;
-    writeln!(wtr, "{}[{}] = {{", DATA_ARR, SZ_DEFINE)?;
+    writeln!(wtr, "{}[{}][{}] = {{", DATA_ARR, SZ_DEFINE, DATA_SIZE)?;
     for (i, arr) in data.chunks(4).enumerate() {
         let lnpos = i % LN_SIZE;
         let indent = if lnpos == 0 {INDENT} else {""};
