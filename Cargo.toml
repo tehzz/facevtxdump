@@ -1,0 +1,9 @@
+[package]
+name = "facevtxdump"
+version = "0.5.0"
+authors = ["tehz <tehzz@users.noreply.github.com>"]
+
+[dependencies]
+failure = "0.1.2"
+structopt = "0.2.12"
+byteorder = "1.2.6"
