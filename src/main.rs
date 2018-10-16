@@ -4,6 +4,7 @@ extern crate byteorder;
 
 mod vtx;
 mod faces;
+mod anims;
 
 use structopt::StructOpt;
 use failure::{Error, ResultExt};
@@ -33,6 +34,9 @@ struct Opts {
     /// Look for face data (linked in PlaneGroup)
     #[structopt(short = "f", long = "face", conflicts_with = "vertex")]
     face: bool,
+    /// Look for animation data (linked in NodeGroup)
+    #[structopt(short = "a", long = "animation", conflicts_with = "vertex", conflicts_with = "face")]
+    anim: bool,
     /// Min padding between values in output array 
     #[structopt(short = "w")]
     width: Option<usize>,
@@ -57,9 +61,10 @@ fn run(opts: Opts) -> Result<(), Error> {
     let vram = opts.ram.unwrap_or(0);
     let width = opts.width.unwrap_or(0);
 
-    match (opts.vtx, opts.face) {
-        (true, false) => vtx::dump(rdr, wtr, opts.addr, vram as u32, width)?,
-        (false, true) => faces::dump(rdr, wtr, opts.addr, vram as u32, width)?,
+    match (opts.vtx, opts.face, opts.anim) {
+        (true, false, false) => vtx::dump(rdr, wtr, opts.addr, vram as u32, width)?,
+        (false, true, false) => faces::dump(rdr, wtr, opts.addr, vram as u32, width)?,
+        (false, false, true) => anims::dump(rdr, wtr, opts.addr, vram as u32, width)?,
         _ => bail!("Illegal combination of mode options"),
     };
 

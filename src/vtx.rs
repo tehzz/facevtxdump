@@ -55,7 +55,7 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32, width: usize)
     // Write out the array of three 16bit values per vertex 
     let data_start = data_offset + vram as u64;
     let info_addr  = offset + vram as u64;
-    writeln!(wtr, "#define {} {}", SZ_DEFINE, info.count);
+    writeln!(wtr, "#define {} {}", SZ_DEFINE, info.count)?;
     writeln!(wtr, "/* @ {:08X} */", data_start)?;
     writeln!(wtr, "{}_{:08X}[{}][{}] = {{", DATA_ARR, data_start, SZ_DEFINE, DATA_SIZE)?;
     for (i, arr) in data.chunks(3).enumerate() {
