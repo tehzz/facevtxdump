@@ -57,7 +57,7 @@ pub fn dump<R, W>(mut rdr: R, mut wtr: W, offset: u64, vram: u32, width: usize)
         }
     }
     writeln!(wtr, "/* @ {:08X} */", info_addr)?;
-    writeln!(wtr, "{}_{:08X}[{}] = {{", INFO_VAR, info_addr, anim_infos.len())?;
+    writeln!(wtr, "{}_{:08X}[{}] = {{", INFO_VAR, info_addr, anim_infos.len() + 1)?;    // add one to include terminator struct
     write!(wtr, "{}", info_str)?;
     /* Write terminator */
     let term = AnimInfo::TERMINATOR;
@@ -103,7 +103,7 @@ fn write_short_six<R, W>(wtr: &mut W, rdr: &mut R, info: &AnimInfo, ram: u64, wi
     -> Result<(), AnimDumpErr>
     where R: Read + Seek, W: Write
 {
-    const LINE_SZ: usize = 2;
+    const LINE_SZ: usize = 1;
     const DATA_SZ: usize = 6;
 
     let data_offset = (info.data_ptr as u64).checked_sub(ram).ok_or(AnimDumpErr::Tlb(info.data_ptr, ram))?;
